@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "texto": "No pierdas más tiempo discutiendo lo que debería ser un buen hombre. Sé uno.",
+    "autor": "Marco Aurelio",
+    "corriente": "ESTOICISMO"
+  },
+  {
+    "id": 2,
+    "texto": "No nos atrevemos a muchas cosas porque son difíciles; son difíciles porque no nos atrevemos.",
+    "autor": "Séneca",
+    "corriente": "ESTOICISMO"
+  },
+  {
+    "id": 3,
+    "texto": "No son las cosas las que atormentan a los hombres, sino la opinión que tienen de ellas.",
+    "autor": "Epicteto",
+    "corriente": "ESTOICISMO"
+  },
+  {
+    "id": 4,
+    "texto": "Quien tiene un porqué para vivir puede soportar casi cualquier cómo.",
+    "autor": "Friedrich Nietzsche",
+    "corriente": "EXISTENCIALISMO"
+  },
+  {
+    "id": 5,
+    "texto": "El destino mezcla las cartas, y nosotros las jugamos.",
+    "autor": "Arthur Schopenhauer",
+    "corriente": "PESIMISMO FILOSÓFICO"
+  },
+  {
+    "id": 6,
+    "texto": "En medio del invierno, aprendí por fin que había en mí un verano invencible.",
+    "autor": "Albert Camus",
+    "corriente": "ABSURDISMO"
+  },
+  {
+    "id": 7,
+    "texto": "El hombre que teme al sufrimiento ya está sufriendo lo que teme.",
+    "autor": "Michel de Montaigne",
+    "corriente": "HUMANISMO"
+  },
+  {
+    "id": 8,
+    "texto": "Solo le temo a una cosa: a no ser digno de mis propios sufrimientos.",
+    "autor": "Fiódor Dostoievski",
+    "corriente": "EXISTENCIALISMO"
+  },
+  {
+    "id": 9,
+    "texto": "No vale la pena suicidarse, porque siempre te suicidas demasiado tarde.",
+    "autor": "Emil Cioran",
+    "corriente": "NIHILISMO"
+  },
+  {
+    "id": 10,
+    "texto": "Ningún hombre pisa dos veces el mismo río, porque no es el mismo río y él no es el mismo hombre.",
+    "autor": "Heráclito",
+    "corriente": "FILOSOFÍA CLÁSICA"
+  }
+]

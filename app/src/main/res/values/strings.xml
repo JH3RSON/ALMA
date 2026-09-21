@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ALMA</string>
+    <string name="by_author">BY IMA</string>
+    <string name="app_slogan">Mi Diario Personal y Memorias</string>
+
+    <!-- Home Screen -->
+    <string name="search_placeholder">Buscar por texto o #hashtag...</string>
+    <string name="memories_title">Tus memorias</string>
+    <string name="new_entry_desc">Nueva entrada</string>
+
+    <!-- Settings Sheet -->
+    <string name="settings_title">Ajustes de ALMA</string>
+    <string name="theme_appearance_title">Apariencia del Tema</string>
+    <string name="theme_system">Sistema (Automático)</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_material_you">Material You (Android 12+)</string>
+    <string name="language_title">Idioma de la App</string>
+    <string name="export_pdf_title">Exportar Diario a PDF</string>
+    <string name="export_pdf_subtitle">Genera un libro antiguo con tus memorias</string>
+
+    <!-- Write Screen -->
+    <string name="write_body_placeholder">Empieza a escribir...</string>
+    <string name="write_hashtags_placeholder">#hashtags (ej: #viaje #reflexión)</string>
+    <string name="btn_done">Listo</string>
+
+    <!-- Onboarding Screen -->
+    <string name="welcome_title">Bienvenido a ALMA</string>
+    <string name="welcome_subtitle_1">Un espacio íntimo y minimalista para conectar con tu mente y conservar tus pensamientos más sinceros.</string>
+    <string name="welcome_subtitle_2">Para comenzar tu viaje, tómate un momento para capturar una foto especial. La usaremos como portada única de tu diario.</string>
+    <string name="btn_take_cover">Tomar Foto de Portada</string>
+
+    <!-- PDF -->
+    <string name="pdf_fin">FIN</string>
+    <string name="pdf_gracias">GRACIAS POR HABLAR CON TU ALMA</string>
+
+    <!-- Frases Filosóficas -->
+    <string-array name="frases_diario">
+        <item>El dolor es inevitable, el sufrimiento es opcional. - Buda</item>
+        <item>No tienes dominio sobre las circunstancias externas, pero sí sobre tu mente. - Marco Aurelio</item>
+        <item>No es lo que te ocurre, sino cómo reaccionas lo que importa. - Epicteto</item>
+        <item>Sufrimos más a menudo en la imaginación que en la realidad. - Séneca</item>
+        <item>El que tiene un porqué para vivir puede soportar casi cualquier cómo. - Nietzsche</item>
+        <item>No somos lo que nos pasa, somos lo que elegimos ser. - Jung</item>
+        <item>Exígete mucho a ti mismo y espera poco de los demás. - Confucio</item>
+        <item>La felicidad de tu vida depende de la calidad de tus pensamientos. - Marco Aurelio</item>
+        <item>Quien mira hacia afuera, sueña; quien mira hacia adentro, despierta. - Jung</item>
+        <item>No puedes controlar el viento, pero puedes ajustar las velas. - Proverbio</item>
+        <item>Un viaje de mil millas comienza con un solo paso. - Lao Tzu</item>
+        <item>La paz viene de adentro. No la busques afuera. - Buda</item>
+        <item>Si estás en paz con tu mente, estás en paz con el mundo. - Lao Tzu</item>
+        <item>La mente libre de pasiones es una fortaleza inexpugnable. - Marco Aurelio</item>
+        <item>La tranquilidad es simplemente el buen orden de la mente. - Marco Aurelio</item>
+    </string-array>
+</resources>

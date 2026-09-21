@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ALMA</string>
+    <string name="by_author">BY IMA</string>
+    <string name="app_slogan">My Personal Journal &amp; Memories</string>
+
+    <!-- Home Screen -->
+    <string name="search_placeholder">Search by text or #hashtag...</string>
+    <string name="memories_title">Your memories</string>
+    <string name="new_entry_desc">New entry</string>
+
+    <!-- Settings Sheet -->
+    <string name="settings_title">ALMA Settings</string>
+    <string name="theme_appearance_title">Theme Appearance</string>
+    <string name="theme_system">System (Automatic)</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_material_you">Material You (Android 12+)</string>
+    <string name="language_title">App Language</string>
+    <string name="export_pdf_title">Export Journal to PDF</string>
+    <string name="export_pdf_subtitle">Generates a classic book with your memories</string>
+
+    <!-- Write Screen -->
+    <string name="write_body_placeholder">Start writing...</string>
+    <string name="write_hashtags_placeholder">#hashtags (eg: #trip #reflection)</string>
+    <string name="btn_done">Done</string>
+
+    <!-- Onboarding Screen -->
+    <string name="welcome_title">Welcome to ALMA</string>
+    <string name="welcome_subtitle_1">An intimate and minimalist space to connect with your mind and preserve your most sincere thoughts.</string>
+    <string name="welcome_subtitle_2">To begin your journey, take a moment to capture a special photo. We will use it as your unique journal cover.</string>
+    <string name="btn_take_cover">Take Cover Photo</string>
+
+    <!-- PDF -->
+    <string name="pdf_fin">THE END</string>
+    <string name="pdf_gracias">THANK YOU FOR TALKING TO YOUR ALMA</string>
+
+    <!-- Philosophical Quotes -->
+    <string-array name="frases_diario">
+        <item>Pain is inevitable, suffering is optional. - Buddha</item>
+        <item>You have power over your mind, not outside events. - Marcus Aurelius</item>
+        <item>It’s not what happens to you, but how you react to it that matters. - Epictetus</item>
+        <item>We suffer more often in imagination than in reality. - Seneca</item>
+        <item>He who has a why to live can bear almost any how. - Nietzsche</item>
+        <item>I am not what happened to me, I am what I choose to become. - Jung</item>
+        <item>Demand much from yourself and expect little from others. - Confucius</item>
+        <item>The happiness of your life depends upon the quality of your thoughts. - Marcus Aurelius</item>
+        <item>Who looks outside, dreams; who looks inside, awakes. - Jung</item>
+        <item>You cannot control the wind, but you can adjust your sails. - Proverb</item>
+        <item>A journey of a thousand miles begins with a single step. - Lao Tzu</item>
+        <item>Peace comes from within. Do not seek it without. - Buddha</item>
+        <item>If you are at peace with your mind, you are at peace with the world. - Lao Tzu</item>
+        <item>The mind free from passions is a citadel. - Marcus Aurelius</item>
+        <item>Tranquility is nothing else than the good ordering of the mind. - Marcus Aurelius</item>
+    </string-array>
+</resources>
