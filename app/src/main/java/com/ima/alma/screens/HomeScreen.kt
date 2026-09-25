@@ -79,7 +79,7 @@ fun HomeScreen(
 
     val isDark = isSystemInDarkTheme() || temaPreferido == "ios_oscuro"
 
-    val entradas by viewModel.todasLasEntradas.collectAsState(initial = emptyList())
+    val entradas by viewModel.todasLasEntradas.collectAsState()
     val idiomaActualState by preferencesManager.idiomaPreferido.collectAsState(initial = "es")
 
     var mostrarSettingsSheet by remember { mutableStateOf(false) }
@@ -134,21 +134,26 @@ fun HomeScreen(
 
     var searchQuery by remember { mutableStateOf("") }
 
-    val entradasFiltradas = remember(entradas, searchQuery) {
-        if (searchQuery.isBlank()) {
-            entradas
-        } else {
-            val query = searchQuery.trim().lowercase()
-            entradas.filter { entrada ->
-                entrada.texto.lowercase().contains(query) ||
-                (entrada.hashtags?.lowercase()?.contains(query) == true)
+    // Optimización de recomposición con derivedStateOf
+    val entradasFiltradas by remember {
+        derivedStateOf {
+            if (searchQuery.isBlank()) {
+                entradas
+            } else {
+                val query = searchQuery.trim().lowercase()
+                entradas.filter { entrada ->
+                    entrada.texto.lowercase().contains(query) ||
+                    (entrada.hashtags?.lowercase()?.contains(query) == true)
+                }
             }
         }
     }
 
-    val entradasAgrupadas = remember(entradasFiltradas, idiomaActualState) {
-        entradasFiltradas.groupBy { entrada ->
-            obtenerTituloSeccionFecha(entrada.fechaMilisegundos)
+    val entradasAgrupadas by remember {
+        derivedStateOf {
+            entradasFiltradas.groupBy { entrada ->
+                obtenerTituloSeccionFecha(entrada.fechaMilisegundos)
+            }
         }
     }
 
@@ -303,10 +308,10 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     if (!esCuadricula) {
-                        // Modo Lista Compacta (Horizontal)
+                        // Modo Lista Compacta (Horizontal) con key y contentType explícitos
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             entradasAgrupadas.forEach { (tituloSeccion, listaEntradas) ->
-                                item(key = "header_$tituloSeccion") {
+                                item(key = "header_$tituloSeccion", contentType = "seccion_header") {
                                     Text(
                                         text = tituloSeccion,
                                         style = TextStyle(
@@ -322,7 +327,11 @@ fun HomeScreen(
                                     )
                                 }
 
-                                items(listaEntradas, key = { it.id }) { entrada ->
+                                items(
+                                    items = listaEntradas,
+                                    key = { it.id },
+                                    contentType = { "entrada_compacta" }
+                                ) { entrada ->
                                     EntradaCardCompacta(
                                         entrada = entrada,
                                         isDark = isDark,
@@ -331,24 +340,32 @@ fun HomeScreen(
                                     Spacer(modifier = Modifier.height(10.dp))
                                 }
                             }
-                            item { Spacer(modifier = Modifier.height(100.dp)) }
+                            item(key = "footer_spacer", contentType = "spacer") {
+                                Spacer(modifier = Modifier.height(100.dp))
+                            }
                         }
                     } else {
-                        // Modo Cuadrícula (Poster Grid)
+                        // Modo Cuadrícula (Poster Grid) con key y contentType explícitos
                         LazyVerticalStaggeredGrid(
                             columns = StaggeredGridCells.Fixed(2),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalItemSpacing = 12.dp,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(entradasFiltradas, key = { it.id }) { entrada ->
+                            items(
+                                items = entradasFiltradas,
+                                key = { it.id },
+                                contentType = { "entrada_poster" }
+                            ) { entrada ->
                                 EntradaCard(
                                     entrada = entrada,
                                     isDark = isDark,
                                     onClick = { onEntradaClick(entrada) }
                                 )
                             }
-                            item { Spacer(modifier = Modifier.height(100.dp)) }
+                            item(key = "grid_footer_spacer", contentType = "spacer") {
+                                Spacer(modifier = Modifier.height(100.dp))
+                            }
                         }
                     }
                 }

@@ -162,8 +162,11 @@ fun EscribirEntradaScreen(
     var mostrarDialogoBorrar by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
-    LaunchedEffect(scrollState.maxValue) {
-        scrollState.animateScrollTo(scrollState.maxValue)
+    val maxScrollValue by remember { derivedStateOf { scrollState.maxValue } }
+    LaunchedEffect(maxScrollValue) {
+        if (maxScrollValue > 0) {
+            scrollState.animateScrollTo(maxScrollValue)
+        }
     }
 
     // Selector de fotos nativo con límite estricto de 3 imágenes

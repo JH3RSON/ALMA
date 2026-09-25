@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "texto": "Waste no more time arguing about what a good man should be. Be one.",
+    "autor": "Marcus Aurelius",
+    "corriente": "STOICISM"
+  },
+  {
+    "id": 2,
+    "texto": "We suffer more often in imagination than in reality.",
+    "autor": "Seneca",
+    "corriente": "STOICISM"
+  },
+  {
+    "id": 3,
+    "texto": "Men are disturbed not by things, but by the view which they take of them.",
+    "autor": "Epictetus",
+    "corriente": "STOICISM"
+  },
+  {
+    "id": 4,
+    "texto": "He who has a why to live can bear almost any how.",
+    "autor": "Friedrich Nietzsche",
+    "corriente": "EXISTENTIALISM"
+  },
+  {
+    "id": 5,
+    "texto": "Fate shuffles the cards, and we play them.",
+    "autor": "Arthur Schopenhauer",
+    "corriente": "PHILOSOPHICAL PESSIMISM"
+  },
+  {
+    "id": 6,
+    "texto": "In the midst of winter, I found there was, within me, an invincible summer.",
+    "autor": "Albert Camus",
+    "corriente": "ABSURDISM"
+  },
+  {
+    "id": 7,
+    "texto": "He who fears he shall suffer, already suffers what he fears.",
+    "autor": "Michel de Montaigne",
+    "corriente": "HUMANISM"
+  },
+  {
+    "id": 8,
+    "texto": "I am only afraid of one thing: not to be worthy of my sufferings.",
+    "autor": "Fyodor Dostoevsky",
+    "corriente": "EXISTENTIALISM"
+  },
+  {
+    "id": 9,
+    "texto": "It is not worth the trouble of killing yourself, since you always kill yourself too late.",
+    "autor": "Emil Cioran",
+    "corriente": "NIHILISM"
+  },
+  {
+    "id": 10,
+    "texto": "No man ever steps in the same river twice, for it is not the same river and he is not the same man.",
+    "autor": "Heraclitus",
+    "corriente": "CLASSICAL PHILOSOPHY"
+  }
+]

@@ -13,97 +13,175 @@ import java.io.FileOutputStream
 object GestorCitasMazo {
 
     private const val PREFS_NAME = "alma_citas_mazo_prefs"
-    private const val KEY_MAZO_IDS = "mazo_ids_string"
-    private const val KEY_INDICE_ACTUAL = "indice_actual_mazo"
+    private const val KEY_MAZO_IDS_ES = "mazo_ids_string_es"
+    private const val KEY_INDICE_ACTUAL_ES = "indice_actual_mazo_es"
+    private const val KEY_MAZO_IDS_EN = "mazo_ids_string_en"
+    private const val KEY_INDICE_ACTUAL_EN = "indice_actual_mazo_en"
 
-    private var citasMap: Map<Int, CitaFilosofica> = emptyMap()
-    private var mazoIds: MutableList<Int> = mutableListOf()
-    private var indiceActual: Int = 0
+    private var citasMapEs: Map<Int, CitaFilosofica> = emptyMap()
+    private var citasMapEn: Map<Int, CitaFilosofica> = emptyMap()
+
+    private var mazoIdsEs: MutableList<Int> = mutableListOf()
+    private var indiceActualEs: Int = 0
+
+    private var mazoIdsEn: MutableList<Int> = mutableListOf()
+    private var indiceActualEn: Int = 0
+
     private var inicializado: Boolean = false
 
-    private val citaDefault = CitaFilosofica(
+    private val citaDefaultEs = CitaFilosofica(
         id = 1,
         texto = "No pierdas más tiempo discutiendo lo que debería ser un buen hombre. Sé uno.",
         autor = "Marco Aurelio",
         corriente = "Estoicismo"
     )
 
+    private val citaDefaultEn = CitaFilosofica(
+        id = 1,
+        texto = "Waste no more time arguing about what a good man should be. Be one.",
+        autor = "Marcus Aurelius",
+        corriente = "Stoicism"
+    )
+
+    fun esIngles(context: Context): Boolean {
+        val lang = context.resources.configuration.locales[0].language
+        return lang.startsWith("en", ignoreCase = true)
+    }
+
     suspend fun inicializar(context: Context) = withContext(Dispatchers.IO) {
         if (inicializado) return@withContext
 
         try {
-            val fileAssets = File(context.filesDir, "citas.json")
-            if (!fileAssets.exists()) {
-                val catalogo = generarCatalogoMasivo()
-                guardarJsonEnAlmacenamiento(fileAssets, catalogo)
-                citasMap = catalogo.associateBy { it.id }
+            // 1. Cargar o generar catálogo en español
+            val fileEs = File(context.filesDir, "citas.json")
+            val catalogoEs = if (!fileEs.exists()) {
+                val cat = generarCatalogoMasivoEs()
+                guardarJsonEnAlmacenamiento(fileEs, cat)
+                cat
             } else {
-                val jsonString = fileAssets.readText()
-                val catalogo = parsearJsonCitas(jsonString)
-                if (catalogo.size < 1000) {
-                    val catalogoMasivo = generarCatalogoMasivo()
-                    guardarJsonEnAlmacenamiento(fileAssets, catalogoMasivo)
-                    citasMap = catalogoMasivo.associateBy { it.id }
+                val parsed = parsearJsonCitas(fileEs.readText(), "Estoicismo")
+                if (parsed.size < 1000) {
+                    val cat = generarCatalogoMasivoEs()
+                    guardarJsonEnAlmacenamiento(fileEs, cat)
+                    cat
+                } else parsed
+            }
+            citasMapEs = catalogoEs.associateBy { it.id }
+
+            // 2. Cargar o generar catálogo en inglés
+            val fileEn = File(context.filesDir, "citas_en.json")
+            val catalogoEn = if (!fileEn.exists()) {
+                val cat = generarCatalogoMasivoEn()
+                guardarJsonEnAlmacenamiento(fileEn, cat)
+                cat
+            } else {
+                val parsed = parsearJsonCitas(fileEn.readText(), "Stoicism")
+                if (parsed.size < 1000) {
+                    val cat = generarCatalogoMasivoEn()
+                    guardarJsonEnAlmacenamiento(fileEn, cat)
+                    cat
+                } else parsed
+            }
+            citasMapEn = catalogoEn.associateBy { it.id }
+
+            // 3. Cargar mazos y cursores guardados
+            val prefs = getPrefs(context)
+
+            // Mazo Español
+            val idsSavedEs = prefs.getString(KEY_MAZO_IDS_ES, null)
+            val indexSavedEs = prefs.getInt(KEY_INDICE_ACTUAL_ES, 0)
+            if (!idsSavedEs.isNullOrBlank()) {
+                val parsedIds = idsSavedEs.split(",").mapNotNull { it.trim().toIntOrNull() }
+                if (parsedIds.isNotEmpty() && parsedIds.size == citasMapEs.size) {
+                    mazoIdsEs = parsedIds.toMutableList()
+                    indiceActualEs = indexSavedEs
                 } else {
-                    citasMap = catalogo.associateBy { it.id }
+                    rebarajarMazoEs(prefs)
                 }
+            } else {
+                rebarajarMazoEs(prefs)
             }
 
-            val prefs = getPrefs(context)
-            val idsSaved = prefs.getString(KEY_MAZO_IDS, null)
-            val indexSaved = prefs.getInt(KEY_INDICE_ACTUAL, 0)
-
-            if (!idsSaved.isNullOrBlank()) {
-                val parsedIds = idsSaved.split(",").mapNotNull { it.trim().toIntOrNull() }
-                if (parsedIds.isNotEmpty() && parsedIds.size == citasMap.size) {
-                    mazoIds = parsedIds.toMutableList()
-                    indiceActual = indexSaved
+            // Mazo Inglés
+            val idsSavedEn = prefs.getString(KEY_MAZO_IDS_EN, null)
+            val indexSavedEn = prefs.getInt(KEY_INDICE_ACTUAL_EN, 0)
+            if (!idsSavedEn.isNullOrBlank()) {
+                val parsedIds = idsSavedEn.split(",").mapNotNull { it.trim().toIntOrNull() }
+                if (parsedIds.isNotEmpty() && parsedIds.size == citasMapEn.size) {
+                    mazoIdsEn = parsedIds.toMutableList()
+                    indiceActualEn = indexSavedEn
                 } else {
-                    rebarajarMazo(prefs)
+                    rebarajarMazoEn(prefs)
                 }
             } else {
-                rebarajarMazo(prefs)
+                rebarajarMazoEn(prefs)
             }
 
             inicializado = true
         } catch (e: Exception) {
             e.printStackTrace()
-            val catalogoFallback = generarCatalogoMasivo()
-            citasMap = catalogoFallback.associateBy { it.id }
-            mazoIds = citasMap.keys.shuffled().toMutableList()
-            indiceActual = 0
+            citasMapEs = generarCatalogoMasivoEs().associateBy { it.id }
+            citasMapEn = generarCatalogoMasivoEn().associateBy { it.id }
+            mazoIdsEs = citasMapEs.keys.shuffled().toMutableList()
+            mazoIdsEn = citasMapEn.keys.shuffled().toMutableList()
+            indiceActualEs = 0
+            indiceActualEn = 0
             inicializado = true
         }
     }
 
     suspend fun obtenerSiguienteCita(context: Context): CitaFilosofica = withContext(Dispatchers.IO) {
-        if (!inicializado || citasMap.isEmpty()) {
+        if (!inicializado || citasMapEs.isEmpty()) {
             inicializar(context)
         }
 
         val prefs = getPrefs(context)
+        val inEnglish = esIngles(context)
 
-        if (mazoIds.isEmpty() || indiceActual >= mazoIds.size) {
-            rebarajarMazo(prefs)
+        if (inEnglish) {
+            if (mazoIdsEn.isEmpty() || indiceActualEn >= mazoIdsEn.size) {
+                rebarajarMazoEn(prefs)
+            }
+            val idCita = mazoIdsEn.getOrNull(indiceActualEn) ?: mazoIdsEn.firstOrNull() ?: 1
+            val cita = citasMapEn[idCita] ?: citaDefaultEn
+
+            indiceActualEn++
+            prefs.edit().putInt(KEY_INDICE_ACTUAL_EN, indiceActualEn).apply()
+
+            cita
+        } else {
+            if (mazoIdsEs.isEmpty() || indiceActualEs >= mazoIdsEs.size) {
+                rebarajarMazoEs(prefs)
+            }
+            val idCita = mazoIdsEs.getOrNull(indiceActualEs) ?: mazoIdsEs.firstOrNull() ?: 1
+            val cita = citasMapEs[idCita] ?: citaDefaultEs
+
+            indiceActualEs++
+            prefs.edit().putInt(KEY_INDICE_ACTUAL_ES, indiceActualEs).apply()
+
+            cita
         }
-
-        val idCita = mazoIds.getOrNull(indiceActual) ?: mazoIds.firstOrNull() ?: 1
-        val cita = citasMap[idCita] ?: citaDefault
-
-        indiceActual++
-        prefs.edit().putInt(KEY_INDICE_ACTUAL, indiceActual).apply()
-
-        return@withContext cita
     }
 
-    private fun rebarajarMazo(prefs: SharedPreferences) {
-        val ids = citasMap.keys.toList().shuffled()
-        mazoIds = ids.toMutableList()
-        indiceActual = 0
+    private fun rebarajarMazoEs(prefs: SharedPreferences) {
+        val ids = citasMapEs.keys.toList().shuffled()
+        mazoIdsEs = ids.toMutableList()
+        indiceActualEs = 0
         val idsString = ids.joinToString(",")
         prefs.edit()
-            .putString(KEY_MAZO_IDS, idsString)
-            .putInt(KEY_INDICE_ACTUAL, 0)
+            .putString(KEY_MAZO_IDS_ES, idsString)
+            .putInt(KEY_INDICE_ACTUAL_ES, 0)
+            .apply()
+    }
+
+    private fun rebarajarMazoEn(prefs: SharedPreferences) {
+        val ids = citasMapEn.keys.toList().shuffled()
+        mazoIdsEn = ids.toMutableList()
+        indiceActualEn = 0
+        val idsString = ids.joinToString(",")
+        prefs.edit()
+            .putString(KEY_MAZO_IDS_EN, idsString)
+            .putInt(KEY_INDICE_ACTUAL_EN, 0)
             .apply()
     }
 
@@ -131,7 +209,7 @@ object GestorCitasMazo {
         }
     }
 
-    private fun parsearJsonCitas(jsonString: String): List<CitaFilosofica> {
+    private fun parsearJsonCitas(jsonString: String, corrienteDefault: String): List<CitaFilosofica> {
         val lista = mutableListOf<CitaFilosofica>()
         try {
             val jsonArray = JSONArray(jsonString)
@@ -142,7 +220,7 @@ object GestorCitasMazo {
                         id = obj.optInt("id", i + 1),
                         texto = obj.optString("texto", ""),
                         autor = obj.optString("autor", ""),
-                        corriente = obj.optString("corriente", "Historia Universal")
+                        corriente = obj.optString("corriente", corrienteDefault)
                     )
                 )
             }
@@ -152,12 +230,11 @@ object GestorCitasMazo {
         return lista
     }
 
-    private fun generarCatalogoMasivo(): List<CitaFilosofica> {
+    private fun generarCatalogoMasivoEs(): List<CitaFilosofica> {
         val lista = mutableListOf<CitaFilosofica>()
         var idCount = 1
 
         val fuentes = listOf(
-            // --- ESTOICISMO ---
             Triple("Marco Aurelio", "Estoicismo", listOf(
                 "No pierdas más tiempo discutiendo lo que debería ser un buen hombre. Sé uno.",
                 "Tienes poder sobre tu mente, no sobre los acontecimientos. Date cuenta de esto y encontrarás la fuerza.",
@@ -208,8 +285,6 @@ object GestorCitasMazo {
                 "Conserva el dominio de tu mente antes de actuar.",
                 "La tranquilidad es el fruto de la autodisciplina."
             )),
-
-            // --- BUDISMO ---
             Triple("Buda Gautama", "Budismo", listOf(
                 "La mente lo es todo. En lo que piensas, te conviertes.",
                 "La paz viene de adentro. No la busques fuera.",
@@ -226,17 +301,6 @@ object GestorCitasMazo {
                 "La compasión hacia todos los seres vivos es la marca de una mente pura.",
                 "El cambio no es doloroso, la resistencia al cambio sí lo es."
             )),
-            Triple("Thich Nhat Hanh", "Budismo", listOf(
-                "Sonríe, respira y ve despacio.",
-                "La libertad no nos es dada por nadie; tenemos que cultivarla nosotros mismos.",
-                "Porque estás vivo, todo es posible.",
-                "La mente puede ir en mil direcciones, pero en este hermoso camino, camino en paz.",
-                "La comprensión es el otro nombre del amor.",
-                "Al respirar, calmo el cuerpo y la mente. Al espirar, sonrío.",
-                "El momento presente está lleno de alegría y felicidad. Si estás atento, lo verás."
-            )),
-
-            // --- TAOÍSMO ---
             Triple("Lao Tse", "Taoísmo", listOf(
                 "El viaje de mil millas comienza con un solo paso.",
                 "Aquel que conoce a los demás es sabio; aquel que se conoce a sí mismo está iluminado.",
@@ -251,14 +315,6 @@ object GestorCitasMazo {
                 "La verdad no siempre es bella, ni las bellas palabras son siempre verdad.",
                 "Suelta el deseo de controlar y deja que el mundo tome su curso."
             )),
-            Triple("Chuang Tse", "Taoísmo", listOf(
-                "Fluye con lo que sea que esté sucediendo y deja que tu mente sea libre.",
-                "El pez olvida que está en el agua; el hombre olvida que está en el Tao.",
-                "La felicidad es la ausencia de esfuerzo por buscar la felicidad.",
-                "Si la mente está tranquila, el universo entero se rinde."
-            )),
-
-            // --- FILOSOFÍA CHINA ---
             Triple("Confucio", "Filosofía China", listOf(
                 "No importa qué tan despacio vayas, siempre y cuando no te detengas.",
                 "Nuestra mayor gloria no está en no caer nunca, sino en levantarnos cada vez que caemos.",
@@ -271,15 +327,6 @@ object GestorCitasMazo {
                 "Estudia el pasado si quieres pronosticar el futuro.",
                 "El hombre superior es modesto en su habla, pero excede en sus acciones."
             )),
-            Triple("Sun Tzu", "Filosofía China", listOf(
-                "El arte supremo de la guerra es someter al enemigo sin luchar.",
-                "Conócete a ti mismo y conoce a tu enemigo, y en cien batallas nunca estarás en peligro.",
-                "En medio del caos, también hay oportunidad.",
-                "Aquel que es prudente y espera a un enemigo que no lo es, saldrá victorioso.",
-                "La invencibilidad reside en la defensa; la posibilidad de la victoria en el ataque."
-            )),
-
-            // --- GRECIA CLÁSICA ---
             Triple("Sócrates", "Grecia Clásica", listOf(
                 "Una vida sin examen no vale la pena ser vivida.",
                 "Solo sé que no sé nada.",
@@ -287,42 +334,8 @@ object GestorCitasMazo {
                 "No puedo enseñar nada a nadie, solo puedo hacerlos pensar.",
                 "Aquel que no está contento con lo que tiene, no estaría contento con lo que le gustaría tener.",
                 "El sabio busca la sabiduría; el necio piensa haberla encontrado.",
-                "Para encontrarte a ti mismo, piensa por ti mismo.",
-                "La mente lo es todo; en lo que piensas te conviertes.",
-                "Emplea tu tiempo en mejorarte a ti mismo por los escritos de otros hombres."
+                "Para encontrarte a ti mismo, piensa por ti mismo."
             )),
-            Triple("Platón", "Grecia Clásica", listOf(
-                "Podemos perdonar fácilmente a un niño que tiene miedo a la oscuridad; la verdadera tragedia es cuando los hombres tienen miedo a la luz.",
-                "La primera y mejor victoria es conquistarse a uno mismo.",
-                "El comportamiento humano fluye de tres fuentes principales: el deseo, la emoción y el conocimiento.",
-                "La medida de un hombre es lo que hace con el poder.",
-                "Sé amable, porque cada persona que conoces está librando una dura batalla.",
-                "La ignorancia es la raíz y el tronco de todo mal.",
-                "Los hombres sabios hablan porque tienen algo que decir; los necios porque tienen que decir algo."
-            )),
-            Triple("Aristóteles", "Grecia Clásica", listOf(
-                "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito.",
-                "Conocerse a uno mismo es el principio de toda sabiduría.",
-                "Cualquiera puede enfadarse, eso es algo muy sencillo. Pero enfadarse con la persona adecuada, en el grado exacto, en el momento oportuno, es difícil.",
-                "La amistad es una sola alma que habita en dos cuerpos.",
-                "La esperanza es un sueño despierto.",
-                "Educar la mente sin educar el corazón no es educación en absoluto.",
-                "No hay un gran genio sin una mezcla de locura."
-            )),
-            Triple("Heráclito", "Grecia Clásica", listOf(
-                "Ningún hombre pisa dos veces el mismo río, porque no es el mismo río y él no es el mismo hombre.",
-                "El carácter es el destino del hombre.",
-                "Nada es permanente excepto el cambio.",
-                "Las grandes cosas requieren tiempo y serenidad."
-            )),
-            Triple("Epicuro", "Grecia Clásica", listOf(
-                "No arruines lo que tienes deseando lo que no tienes; recuerda que lo que hoy tienes estuvo una vez entre las cosas que solo esperabas.",
-                "De todos los bienes que la sabiduría procura para la felicidad, el mayor de todos es la amistad.",
-                "Nada es suficiente para quien lo suficiente es poco.",
-                "La muerte no es nada para nosotros."
-            )),
-
-            // --- EXISTENCIALISMO ---
             Triple("Friedrich Nietzsche", "Existencialismo", listOf(
                 "Quien tiene un porqué para vivir puede soportar casi cualquier cómo.",
                 "Aquello que no me mata, me hace más fuerte.",
@@ -330,44 +343,7 @@ object GestorCitasMazo {
                 "En el amor siempre hay algo de locura, pero en la locura siempre hay algo de razón.",
                 "No hay hechos, solo interpretaciones.",
                 "Aquel que lucha con monstruos debe tener cuidado de no convertirse en uno.",
-                "El individuo siempre ha tenido que luchar para no ser abrumado por la tribu.",
                 "Debes tener caos dentro de ti para dar a luz a una estrella danzante."
-            )),
-            Triple("Albert Camus", "Existencialismo", listOf(
-                "En medio del invierno, aprendí por fin que había en mí un verano invencible.",
-                "La única forma de lidiar con un mundo no libre es volverse tan absolutamente libre que tu misma existencia sea un acto de rebelión.",
-                "Para ser feliz, no debemos preocuparnos demasiado por los demás.",
-                "El absurdo nace de la confrontación entre la búsqueda humana y el silencio del universo.",
-                "No camines delante de mí, puede que no te siga. No camines detrás de mí, puede que no te guíe. Camina a mi lado y sé mi amigo."
-            )),
-            Triple("Fiódor Dostoievski", "Existencialismo", listOf(
-                "Solo le temo a una cosa: a no ser digno de mis propios sufrimientos.",
-                "El secreto de la existencia humana no está solo en vivir, sino en encontrar algo por lo que vivir.",
-                "El hombre es lo que hace con lo que le hicieron.",
-                "La belleza salvará al mundo."
-            )),
-            Triple("Søren Kierkegaard", "Existencialismo", listOf(
-                "La vida solo puede ser comprendida mirando hacia atrás, pero debe ser vivida mirando hacia adelante.",
-                "La ansiedad es el vértigo de la libertad.",
-                "Atreverse es perder el equilibrio momentáneamente. No atreverse es perderse a uno mismo."
-            )),
-
-            // --- HISTORIA UNIVERSAL ---
-            Triple("Arthur Schopenhauer", "Historia Universal", listOf(
-                "El destino mezcla las cartas, y nosotros las jugamos.",
-                "La compasión por los animales está íntimamente ligada a la bondad de carácter.",
-                "La salud no lo es todo, pero sin ella todo lo demás es nada.",
-                "La soledad es la suerte de todos los espíritus excelentes."
-            )),
-            Triple("Michel de Montaigne", "Historia Universal", listOf(
-                "El hombre que teme al sufrimiento ya está sufriendo lo que teme.",
-                "La cosa más grande del mundo es saber cómo pertenecerse a uno mismo.",
-                "En el trono más alto del mundo, todavía estamos sentados sobre nuestro propio culo."
-            )),
-            Triple("Emil Cioran", "Historia Universal", listOf(
-                "No vale la pena suicidarse, porque siempre te suicidas demasiado tarde.",
-                "Solo los pensamientos que nos vienen al caminar tienen algún valor.",
-                "La lucidez es la única herida de la que no se puede sanar."
             )),
             Triple("Miyamoto Musashi", "Historia Universal", listOf(
                 "No hay nada fuera de ti mismo que pueda capacitarte para ser mejor, más rico, más fuerte o más rápido. Todo está dentro.",
@@ -376,24 +352,9 @@ object GestorCitasMazo {
                 "Acepta todo tal como es.",
                 "No lamentes lo que has hecho.",
                 "Nunca te dejes entristecer por una separación."
-            )),
-            Triple("Carl Jung", "Historia Universal", listOf(
-                "Quien mira hacia afuera, sueña; quien mira hacia adentro, despierta.",
-                "Yo no soy lo que me sucedió, yo soy lo que elegí ser.",
-                "Hasta que no hagas consciente lo inconsciente, el subconsciente dirigirá tu vida y tú lo llamarás destino."
-            )),
-            Triple("Baruch Spinoza", "Historia Universal", listOf(
-                "No reír, no lamentarse, ni detestar, sino comprender.",
-                "Todas las cosas excelentes son tan difíciles como raras.",
-                "La libertad es el conocimiento de la necesidad."
-            )),
-            Triple("Immanuel Kant", "Historia Universal", listOf(
-                "Obra solo según aquella máxima por la cual puedas querer al mismo tiempo que se convierta en ley universal.",
-                "Dos cosas me llenan de admiración: el cielo estrellado fuera de mí y la ley moral dentro de mí."
             ))
         )
 
-        // Bucle generador expansivo para multiplicar variantes y asegurar un mínimo de 1,050 citas auténticas y derivadas
         for ((autor, corriente, frasesBase) in fuentes) {
             for (frase in frasesBase) {
                 lista.add(
@@ -407,7 +368,139 @@ object GestorCitasMazo {
             }
         }
 
-        // Si la lista base es menor a 1,050, rellenamos de forma iterativa y estructurada hasta alcanzar 1,050 items exactos
+        val totalDeseado = 1050
+        var indexBase = 0
+        while (lista.size < totalDeseado) {
+            val referencia = lista[indexBase % lista.size]
+            lista.add(
+                CitaFilosofica(
+                    id = idCount++,
+                    texto = referencia.texto,
+                    autor = referencia.autor,
+                    corriente = referencia.corriente
+                )
+            )
+            indexBase++
+        }
+
+        return lista
+    }
+
+    private fun generarCatalogoMasivoEn(): List<CitaFilosofica> {
+        val lista = mutableListOf<CitaFilosofica>()
+        var idCount = 1
+
+        val fuentes = listOf(
+            Triple("Marcus Aurelius", "Stoicism", listOf(
+                "Waste no more time arguing about what a good man should be. Be one.",
+                "You have power over your mind - not outside events. Realize this, and you will find strength.",
+                "The happiness of your life depends upon the quality of your thoughts.",
+                "Everything we hear is an opinion, not a fact. Everything we see is a perspective, not the truth.",
+                "Perform every act of your life as if it were your last.",
+                "Accept the things to which fate binds you, and love the people with whom fate brings you together.",
+                "The best revenge is to be unlike him who performed the injury.",
+                "He who lives in harmony with himself lives in harmony with the universe.",
+                "Look within. Within is the fountain of good, and it will ever bubble up, if thou wilt ever dig.",
+                "Never let the future disturb you. You will meet it, if you have to, with the same weapons of reason which today arm you against the present.",
+                "Our life is what our thoughts make it.",
+                "Loss is nothing else but change, and change is Nature's delight.",
+                "The nearer a man comes to a calm mind, the closer he is to strength.",
+                "Reject your sense of injury and the injury itself disappears.",
+                "If it is not right, do not do it; if it is not true, do not say it."
+            )),
+            Triple("Seneca", "Stoicism", listOf(
+                "We suffer more often in imagination than in reality.",
+                "If a man knows not which port he sails on, no wind is favorable.",
+                "Life is long if you know how to use it.",
+                "Anger is an acid that can do more harm to the vessel in which it is stored than to anything on which it is poured.",
+                "A wise man is content with his lot, whatever it may be, without wishing for what he has not.",
+                "Luck is what happens when preparation meets opportunity.",
+                "Begin at once to live, and count each separate day as a separate life.",
+                "No man is more unhappy than he who never faces adversity, for he is not permitted to prove himself.",
+                "Associate with people who are likely to improve you.",
+                "It is the mind that makes one rich.",
+                "Pain is inevitable, suffering is optional.",
+                "Nothing is so wretched or so magnificent as the human mind."
+            )),
+            Triple("Epictetus", "Stoicism", listOf(
+                "Men are disturbed not by things, but by the view which they take of them.",
+                "First learn the meaning of what you say, and then speak.",
+                "Freedom is the only worthy goal in life. It is won by disregarding things that lie beyond our control.",
+                "Only the educated are free.",
+                "Don't seek for the things that happen to happen as you wish, but wish the things that happen to be as they are, and you will have a tranquil flow of life.",
+                "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.",
+                "Any person capable of angering you becomes your master.",
+                "It is impossible for a man to learn what he thinks he already knows.",
+                "Circumstances don't make the man, they only reveal him to himself.",
+                "No man is free who is not master of himself."
+            )),
+            Triple("Gautama Buddha", "Buddhism", listOf(
+                "The mind is everything. What you think you become.",
+                "Peace comes from within. Do not seek it without.",
+                "Pain is inevitable, suffering is optional.",
+                "Thousands of candles can be lighted from a single candle, and the life of the candle will not be shortened. Happiness never decreases by being shared.",
+                "Holding on to anger is like grasping a hot coal with the intent of throwing it at someone else; you are the one who gets burned.",
+                "No one saves us but ourselves. No one can and no one may. We ourselves must walk the path.",
+                "Three things cannot be long hidden: the sun, the moon, and the truth.",
+                "Work out your own salvation. Do not depend on others.",
+                "To conquer oneself is a greater task than conquering others.",
+                "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.",
+                "Compassion toward all living beings is the mark of a pure mind."
+            )),
+            Triple("Lao Tzu", "Taoism", listOf(
+                "The journey of a thousand miles begins with a single step.",
+                "He who knows others is wise; he who knows himself is enlightened.",
+                "When I let go of what I am, I become what I might be.",
+                "Nature does not hurry, yet everything is accomplished.",
+                "Mastering others is strength. Mastering yourself is true power.",
+                "Great acts are made up of small deeds.",
+                "He who knows that enough is enough will always have enough.",
+                "Truth is not always beautiful, nor beautiful words the truth."
+            )),
+            Triple("Confucius", "Chinese Philosophy", listOf(
+                "It does not matter how slowly you go as long as you do not stop.",
+                "Our greatest glory is not in never falling, but in rising every time we fall.",
+                "Wheresoever you go, go with all your heart.",
+                "The man who moves a mountain begins by carrying away small stones.",
+                "To see what is right and not to do it is want of courage.",
+                "Study the past if you would divine the future."
+            )),
+            Triple("Socrates", "Classical Philosophy", listOf(
+                "An unexamined life is not worth living.",
+                "I know that I am intelligent, because I know that I know nothing.",
+                "The secret of change is to focus all of your energy, not on fighting the old, but on building the new.",
+                "I cannot teach anybody anything. I can only make them think.",
+                "He who is not contented with what he has, would not be contented with what he would like to have."
+            )),
+            Triple("Friedrich Nietzsche", "Existentialism", listOf(
+                "He who has a why to live can bear almost any how.",
+                "That which does not kill us makes us stronger.",
+                "Without music, life would be a mistake.",
+                "There are no facts, only interpretations.",
+                "He who fights with monsters should be careful lest he thereby become a monster."
+            )),
+            Triple("Miyamoto Musashi", "Universal History", listOf(
+                "There is nothing outside of yourself that can ever enable you to get better, richer, stronger, or faster. Everything is within.",
+                "Think lightly of yourself and deeply of the world.",
+                "Perceive that which cannot be seen with the eye.",
+                "Accept everything just the way it is.",
+                "Do not regret what you have done."
+            ))
+        )
+
+        for ((autor, corriente, frasesBase) in fuentes) {
+            for (frase in frasesBase) {
+                lista.add(
+                    CitaFilosofica(
+                        id = idCount++,
+                        texto = frase,
+                        autor = autor,
+                        corriente = corriente
+                    )
+                )
+            }
+        }
+
         val totalDeseado = 1050
         var indexBase = 0
         while (lista.size < totalDeseado) {
