@@ -100,7 +100,7 @@ Have an idea for a feature, discovered an issue, or want to share your thoughts 
   <br />
 
   <!-- Prominent Telegram Contact Button -->
-  <a href="https://t.me/TU_USUARIO_TELEGRAM" target="_blank" rel="noopener noreferrer">
+  <a href="https://t.me/IMA_2830" target="_blank" rel="noopener noreferrer">
     <img src="https://img.shields.io/badge/Telegram-Chat_with_IMA_💬-24A1DE?style=for-the-badge&logo=telegram&logoColor=white&labelColor=0088CC" height="64" alt="Chat on Telegram" />
   </a>
 
